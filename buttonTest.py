@@ -35,7 +35,9 @@ def timer_handler(signum, frame):
     if GPIO.input(BUTTONTHREE) == True: 
         temp3 = True
     # Insert data into database
-    sqlcmd="INSERT INTO {} VALUES (datetime('now','localtime'),{}, {}, {})".format(TABLE,temp1, temp2, temp3)
+    sqlcmd="INSERT INTO {} VALUES (datetime('now','localtime'), {}, {}, {})".format(TABLE,temp1, temp2, temp3)
+    cursor.execute(sqlcmd)
+    sqlcmd="DELETE FROM {} WHERE datatime < datetime('now','localtime','-1 minute')".format(TABLE)
     cursor.execute(sqlcmd)
     db.commit()
 

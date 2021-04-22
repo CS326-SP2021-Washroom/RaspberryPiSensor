@@ -1,0 +1,20 @@
+<html>
+
+<body>
+
+    <script>
+<?PHP    
+    # Use PHP to query database and build Javascript array
+        $query = 'SELECT * FROM ButtonData';
+        $result = $db->query($query) or die('Query failed!');
+        while ($entry = $result->fetchArray()) {
+            list($date, $washer1, $washer2, $dryer1, $dryer2) = split("|", $entry);
+            echo "'{\"date\": $date, \"washer1:\", $washer1, \"washer2\": $washer2, \"dryer1\": $dryer1, \"dryer2\": $dryer2 }'";
+        }
+?>
+
+    </script>
+
+</body>
+
+</html>
