@@ -28,11 +28,11 @@ def timer_handler(signum, frame):
     temp1 = False
     temp2 = False
     temp3 = False
-    if GPIO.input(BUTTONONE) == True: 
+    if GPIO.input(BUTTONONE): 
         temp1 = True
-    if GPIO.input(BUTTONTWO) == True: 
+    if GPIO.input(BUTTONTWO): 
         temp2 = True
-    if GPIO.input(BUTTONTHREE) == True: 
+    if GPIO.input(BUTTONTHREE): 
         temp3 = True
     # Insert data into database
     sqlcmd="INSERT INTO {} VALUES (datetime('now','localtime'), {}, {}, {})".format(TABLE,temp1, temp2, temp3)
