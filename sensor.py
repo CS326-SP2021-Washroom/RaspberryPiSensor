@@ -10,10 +10,11 @@ from time import sleep
 from threading import Thread, Lock
 
 BROKER = 'iot.cs.calvin.edu'
-PORT = 1883
+PORT = 8883
 QOS = 2
 USERNAME = 'cs326'
 PASSWORD = 'piot'
+CERTS = '/etc/ssl/certs/ca-certificates.crt'
 WASHER1_PIN = 12
 WASHER2_PIN = 16
 DRYER1_PIN = 23
@@ -24,7 +25,10 @@ INTERVAL_SLEEP_TIMER = 3
 
 def on_connect(userdata, rc, *extra_params):
     ''' Used upon connecting to mqtt '''
-    print("Connected with result code={}".format(rc))
+    if rc==0: 
+        print("Connected with result code={}".format(rc))
+    else: 
+        print("Connection to", BROKER, "Failed. Return code=", rc)
 
 def on_message(client, userdata, message):
     ''' Used to respond to user request for machine states '''
@@ -60,7 +64,7 @@ def monitor_washer(washer_pin_number):
                     washer1_status = False
                 elif washer_pin_number == WASHER2_PIN:
                     washer2_status = False
-        if not GPIO.input(washer_pin_number)
+        if not GPIO.input(washer_pin_number):
             # Waits for CYCLE_START_COUNT seconds of continuous motion before changing washer state to on:
             for second in range(CYCLE_START_COUNT):
                 client_mutex.acquire()
@@ -83,6 +87,7 @@ washer_thread_two = Thread(target = monitor_washer, args=(WASHER2_PIN, ) )
 # intialize mqtt client and mutex
 client = mqtt.Client()
 client.username_pw_set(USERNAME, password=PASSWORD)
+client.tls_set(CERTS)
 client.on_connect = on_connect
 client.on_message = on_message
 client.connect(BROKER, PORT, 60)
