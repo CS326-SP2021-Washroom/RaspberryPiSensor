@@ -27,19 +27,19 @@ WASHER1_PIN = 12
 WASHER2_PIN = 16
 DRYER1_PIN = 23
 DRYER2_PIN = 25
-#CYCLE_START_COUNT = 2
-CYCLE_TIMEOUT_COUNT = 150
+CYCLE_START_COUNT = 3
+CYCLE_TIMEOUT_COUNT = 120
 INTERVAL_SLEEP_TIMER = 1
 
 def on_connect(userdata, rc, *extra_params):
-    ''' Used upon connecting to mqtt '''
-    if rc==0:
-        print("Connected with result code={}".format(rc))
-    else:
-        print("Connection to", BROKER, "Failed. Return code=", rc)
+    ''' Provides feedback upon connecting to MQTT. '''
+    print("Connected with result code={}".format(rc))
 
 def on_message(client, userdata, message):
-    ''' Used to respond to user request for machine states '''
+    '''  
+    Upon receiving a request for machine states, retrieve the current state of washers and dryers,
+    then publish a string of binary values representing machine states to the appropriate MQTT topic.
+    '''
     dryer1_status = GPIO.input(DRYER1_PIN) == False
     dryer2_status = GPIO.input(DRYER2_PIN) == False
     print("washer1 is ", washer1_status, " washer2 is ", washer2_status, " dryer1 is ", dryer1_status, " dryer2 is ", dryer2_status)
@@ -54,7 +54,11 @@ GPIO.setup(DRYER2_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 washer1_status = washer2_status = False
 
 def monitor_washer(washer_pin_number):
-    ''' Used to determine whether washers are currently on based on pre-determined timers that can be adjusted using constants declared in beginning of file '''
+    ''' 
+    Used by washer threads to determine whether washers are currently on.
+    Washers must stay on for CYCLE_START_COUNT seconds to register as on,
+    and must stay off for CYCLE_TIMEOUT_COUNT seconds to register as off.
+    '''
     global washer1_status, washer2_status, client, client_mutex
     while True:
         if GPIO.input(washer_pin_number):
@@ -72,17 +76,16 @@ def monitor_washer(washer_pin_number):
                     washer1_status = False
                 elif washer_pin_number == WASHER2_PIN:
                     washer2_status = False
-  #      if not GPIO.input(washer_pin_number):
         else:
             # Waits for CYCLE_START_COUNT seconds of continuous motion before changing washer state to on:
-          #  for second in range(CYCLE_START_COUNT):
-           #     client_mutex.acquire()
-            #    client.loop()
-             #   client_mutex.release()
-              #  sleep(1)
-               # if GPIO.input(washer_pin_number):
-                #    break
-            #else:
+            for second in range(CYCLE_START_COUNT):
+                client_mutex.acquire()
+                client.loop()
+                client_mutex.release()
+                sleep(1)
+                if GPIO.input(washer_pin_number):
+                    break
+            else:
             # entire loop completed; change machine state to on
             if washer_pin_number == WASHER1_PIN:
                 washer1_status = True
