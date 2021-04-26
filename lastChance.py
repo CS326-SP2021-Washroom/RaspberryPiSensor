@@ -24,20 +24,21 @@ CYCLE_TIMEOUT_COUNT = 150
 INTERVAL_SLEEP_TIMER = 1
 
 def on_connect(userdata, rc, *extra_params):
-    ''' Used upon connecting to mqtt '''
-    if rc==0:
-        print("Connected with result code={}".format(rc))
+    ''' Provides feedback upon connecting to MQTT. '''
+    print("Connected with result code={}".format(rc))
 
 def on_message(client, userdata, message):
-    ''' Used to respond to user request for machine states '''
+    ''' 
+    Upon receiving a request for machine states, determine if enough time has passed 
+    since each machine's last rising edge to have come to a rest, then
+    publish a string of binary values representing machine states to the appropriate MQTT topic.
+    '''
+    # determine if each machine is on, based upon the time of the last detected rising edge
+    dryer1_status = (time.localtime().tm_hour) * HOUR + (time.localtime().tm_min) < timeDryer1 + HOUR
+    dryer2_status = (time.localtime().tm_hour) * HOUR + (time.localtime().tm_min) < timeDryer2 + HOUR
+    washer1_status = (time.localtime().tm_hour) * HOUR + (time.localtime().tm_min) < timeWasher1 + HALF_HOUR
+    washer2_status = (time.localtime().tm_hour) * HOUR + (time.localtime().tm_min) < timeWasher2 + HALF_HOUR
 
-
-    dryer1_status = (time.localtime().tm_hour) * 60 + (time.localtime().tm_min) < timeDryer1 + 60
-    dryer2_status = (time.localtime().tm_hour) * 60 + (time.localtime().tm_min) < timeDryer2 + 60
-    washer1_status = (time.localtime().tm_hour) * 60 + (time.localtime().tm_min) < timeWasher1 + 30
-    washer2_status = (time.localtime().tm_hour) * 60 + (time.localtime().tm_min) < timeWasher2 + 30
-
-    
     print("washer1 is ", washer1_status, " washer2 is ", washer2_status, " dryer1 is ", dryer1_status, " dryer2 is ", dryer2_status)
     client.publish("cs326/washroom/" + LOCATION, payload=str(int(washer1_status)) + str(int(washer2_status)) + str(int(dryer1_status)) + str(int(dryer2_status)) )
 
@@ -48,19 +49,20 @@ GPIO.setup(WASHER2_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(DRYER1_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(DRYER2_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 washer1_status = washer2_status = False
+
 # time stamps for the washers and dryers
 timeWasher1 = 0
 timeWasher2 = 0
 timeDryer1 = 0
 timeDryer2 = 0
 
-
-
 def watcher(pin_number):
-    global timeWasher1
-    global timeWasher2
-    global timeDryer1
-    global timeDryer2
+    '''
+    Upon detecting a rising edge for a washer or dryer pin, start a timer.
+    If the prior rising edge was over an hour ago for dryers or half hour ago
+    for washers, update the machine's time variable to the current time.
+    '''
+    global timeWasher1, timeWasher2, timeDryer1, timeDryer2
     if(pin_number == WASHER1_PIN):
         print(str(timeWasher1))
         if((time.localtime().tm_hour) * HOUR + (time.localtime().tm_min) > timeWasher1 + HALF_HOUR):
@@ -76,7 +78,6 @@ def watcher(pin_number):
     elif(pin_number == DRYER2_PIN):
         print(str(timeDryer2))
         if((time.localtime().tm_hour) * HOUR + (time.localtime().tm_min) > timeDryer2 + HOUR):
-            print("yes")
             timeDryer2 = (time.localtime().tm_hour) * HOUR + (time.localtime().tm_min)
 
 
@@ -85,6 +86,7 @@ GPIO.add_event_detect(WASHER1_PIN, GPIO.RISING, callback=watcher, bouncetime=250
 GPIO.add_event_detect(WASHER2_PIN, GPIO.RISING, callback=watcher, bouncetime=250)
 GPIO.add_event_detect(DRYER1_PIN, GPIO.RISING, callback=watcher, bouncetime=250)
 GPIO.add_event_detect(DRYER2_PIN, GPIO.RISING, callback=watcher, bouncetime=250)
+
 # intialize mqtt client and mutex
 client = mqtt.Client()
 client.username_pw_set(USERNAME, password=PASSWORD)
