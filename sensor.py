@@ -9,6 +9,14 @@ import paho.mqtt.client as mqtt
 from time import sleep
 from threading import Thread, Lock
 
+
+
+##### Change this string depending on the dorm the Pi resides in
+LOCATION = "Kappa"
+##### Change this string depending on the dorm the Pi resides in
+
+
+
 BROKER = 'iot.cs.calvin.edu'
 PORT = 8883
 QOS = 2
@@ -19,15 +27,15 @@ WASHER1_PIN = 12
 WASHER2_PIN = 16
 DRYER1_PIN = 23
 DRYER2_PIN = 25
-CYCLE_START_COUNT = 3
-CYCLE_TIMEOUT_COUNT = 30
-INTERVAL_SLEEP_TIMER = 3
+#CYCLE_START_COUNT = 2
+CYCLE_TIMEOUT_COUNT = 150
+INTERVAL_SLEEP_TIMER = 1
 
 def on_connect(userdata, rc, *extra_params):
     ''' Used upon connecting to mqtt '''
-    if rc==0: 
+    if rc==0:
         print("Connected with result code={}".format(rc))
-    else: 
+    else:
         print("Connection to", BROKER, "Failed. Return code=", rc)
 
 def on_message(client, userdata, message):
@@ -35,7 +43,7 @@ def on_message(client, userdata, message):
     dryer1_status = GPIO.input(DRYER1_PIN) == False
     dryer2_status = GPIO.input(DRYER2_PIN) == False
     print("washer1 is ", washer1_status, " washer2 is ", washer2_status, " dryer1 is ", dryer1_status, " dryer2 is ", dryer2_status)
-    client.publish("cs326/washroom/Gamma", payload=str(int(washer1_status)) + str(int(washer2_status)) + str(int(dryer1_status)) + str(int(dryer2_status)) )
+    client.publish("cs326/washroom/" + LOCATION, payload=str(int(washer1_status)) + str(int(washer2_status)) + str(int(dryer1_status)) + str(int(dryer2_status)) )
 
 # initialize pins and washer status
 GPIO.setmode(GPIO.BCM)
@@ -64,22 +72,23 @@ def monitor_washer(washer_pin_number):
                     washer1_status = False
                 elif washer_pin_number == WASHER2_PIN:
                     washer2_status = False
-        if not GPIO.input(washer_pin_number):
+  #      if not GPIO.input(washer_pin_number):
+        else:
             # Waits for CYCLE_START_COUNT seconds of continuous motion before changing washer state to on:
-            for second in range(CYCLE_START_COUNT):
-                client_mutex.acquire()
-                client.loop()
-                client_mutex.release()
-                sleep(1)
-                if GPIO.input(washer_pin_number):
-                    break
-            else:
+          #  for second in range(CYCLE_START_COUNT):
+           #     client_mutex.acquire()
+            #    client.loop()
+             #   client_mutex.release()
+              #  sleep(1)
+               # if GPIO.input(washer_pin_number):
+                #    break
+            #else:
             # entire loop completed; change machine state to on
-                if washer_pin_number == WASHER1_PIN:
-                    washer1_status = True
-                elif washer_pin_number == WASHER2_PIN:
-                    washer2_status = True
-        sleep(INTERVAL_SLEEP_TIMER)
+            if washer_pin_number == WASHER1_PIN:
+                washer1_status = True
+            elif washer_pin_number == WASHER2_PIN:
+                washer2_status = True
+       # sleep(INTERVAL_SLEEP_TIMER)
 
 # create a thread for each machine
 washer_thread_one = Thread(target = monitor_washer, args=(WASHER1_PIN, ) )
@@ -91,7 +100,7 @@ client.tls_set(CERTS)
 client.on_connect = on_connect
 client.on_message = on_message
 client.connect(BROKER, PORT, 60)
-client.subscribe("cs326/washroom/Gamma/request", qos=QOS)
+client.subscribe("cs326/washroom/" + LOCATION + "/request", qos=QOS)
 client_mutex = Lock()
 
 try:
