@@ -1,3 +1,5 @@
+# Usage: python sensor.py LOCATION
+#        LOCATION = Dorm or apartment where Pi is located. Capitalize the first letter.
 # program for monitoring 2 washers and 2 dryers
 # monitors cs326/washroom/LOCATION/request for requests
 # uses cs326/washroom/LOCATION for output
@@ -6,16 +8,14 @@
 
 import RPi.GPIO as GPIO
 import paho.mqtt.client as mqtt
+import sys
 from time import sleep
 from threading import Thread, Lock
 
-
-
-##### Change this string depending on the dorm the Pi resides in
-LOCATION = "Kappa"
-##### Change this string depending on the dorm the Pi resides in
-
-
+try:
+    LOCATION = str(sys.argv[1])
+except:
+    sys.exit("Usage: python3 sensor.py LOCATION\n\tLOCATION = Dorm or apartment where Pi is located. Capitalize the first letter.")
 
 BROKER = 'iot.cs.calvin.edu'
 PORT = 8883
