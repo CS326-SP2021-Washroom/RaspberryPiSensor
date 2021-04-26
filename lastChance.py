@@ -32,10 +32,10 @@ def on_message(client, userdata, message):
     ''' Used to respond to user request for machine states '''
 
 
-    dryer1_status = (time.localtime().tm_hour) * 60 + (time.localtime().tm_min) > timeDryer1 + 60
-    dryer2_status = (time.localtime().tm_hour) * 60 + (time.localtime().tm_min) > timeDryer2 + 60
-    washer1_status = (time.localtime().tm_hour) * 60 + (time.localtime().tm_min) > timeWasher1 + 30
-    washer2_status = (time.localtime().tm_hour) * 60 + (time.localtime().tm_min) > timeWasher2 + 30
+    dryer1_status = (time.localtime().tm_hour) * 60 + (time.localtime().tm_min) < timeDryer1 + 60
+    dryer2_status = (time.localtime().tm_hour) * 60 + (time.localtime().tm_min) < timeDryer2 + 60
+    washer1_status = (time.localtime().tm_hour) * 60 + (time.localtime().tm_min) < timeWasher1 + 30
+    washer2_status = (time.localtime().tm_hour) * 60 + (time.localtime().tm_min) < timeWasher2 + 30
 
     
     print("washer1 is ", washer1_status, " washer2 is ", washer2_status, " dryer1 is ", dryer1_status, " dryer2 is ", dryer2_status)
@@ -71,11 +71,12 @@ def watcher(pin_number):
             timeWasher2 = (time.localtime().tm_hour) * HOUR + (time.localtime().tm_min)
     elif(pin_number == DRYER1_PIN):
         print(str(timeDryer1))
-        if((time.localtime().tm_hour) * HOUR + (time.localtime().tm_min) > timeWasher2 + HOUR):
+        if((time.localtime().tm_hour) * HOUR + (time.localtime().tm_min) > timeDryer1 + HOUR):
             timeDryer1 = (time.localtime().tm_hour) * HOUR + (time.localtime().tm_min)
     elif(pin_number == DRYER2_PIN):
         print(str(timeDryer2))
-        if((time.localtime().tm_hour) * HOUR + (time.localtime().tm_min) > timeWasher2 + HOUR):
+        if((time.localtime().tm_hour) * HOUR + (time.localtime().tm_min) > timeDryer2 + HOUR):
+            print("yes")
             timeDryer2 = (time.localtime().tm_hour) * HOUR + (time.localtime().tm_min)
 
 
