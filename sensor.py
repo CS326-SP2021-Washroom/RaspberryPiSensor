@@ -1,5 +1,5 @@
 # program for monitoring 2 washers and 2 dryers
-# monitors cs326/washroom/Gamma/request for requests
+# monitors cs326/washroom/LOCATION/request for requests
 # uses cs326/washroom/LOCATION for output
 # Josh Ridder for cs326
 # 4-23-21
