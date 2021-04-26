@@ -87,10 +87,10 @@ def monitor_washer(washer_pin_number):
                     break
             else:
             # entire loop completed; change machine state to on
-            if washer_pin_number == WASHER1_PIN:
-                washer1_status = True
-            elif washer_pin_number == WASHER2_PIN:
-                washer2_status = True
+                if washer_pin_number == WASHER1_PIN:
+                    washer1_status = True
+                elif washer_pin_number == WASHER2_PIN:
+                    washer2_status = True
        # sleep(INTERVAL_SLEEP_TIMER)
 
 # create a thread for each machine
