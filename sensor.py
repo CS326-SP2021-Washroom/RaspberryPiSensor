@@ -16,6 +16,7 @@ import sys
 import argparse
 from time import sleep
 from threading import Thread, Lock
+from help_string import HELP_STRING
 
 PORT = 8883
 QOS = 2
@@ -34,18 +35,21 @@ parser.add_argument("-b", "--broker", help="MQTT Broker")
 parser.add_argument("-c", "--certs", help="Broker Certificates (optional)")
 parser.add_argument("-u", "--username", help="Broker Username (optional)")
 parser.add_argument("-p", "--password", help="Broker Password (optional)")
-
 args = parser.parse_args()
 
-LOCATION = args.location
-BROKER = args.broker
+if args.location and args.broker:
+    LOCATION = args.location
+    BROKER = args.broker
+else:
+    print(HELP_STRING)
+    sys.exit()
 if args.certs:
     CERTS = args.certs
 if args.username:
     USERNAME = args.username
 if args.password:
     PASSWORD = args.password
-    
+
 # sys.exit("Usage: python3 sensor.py LOCATION\n\tLOCATION = Dorm or apartment where Pi is located. Capitalize the first letter.")
 
 def on_connect(userdata, rc, *extra_params):
@@ -53,7 +57,7 @@ def on_connect(userdata, rc, *extra_params):
     print("Connected with result code={}".format(rc))
 
 def on_message(client, userdata, message):
-    '''  
+    '''
     Upon receiving a request for machine states, retrieve the current state of washers and dryers,
     then publish a string of binary values representing machine states to the appropriate MQTT topic.
     '''
@@ -71,7 +75,7 @@ GPIO.setup(DRYER2_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 washer1_status = washer2_status = False
 
 def monitor_washer(washer_pin_number):
-    ''' 
+    '''
     Used by washer threads to determine whether washers are currently on.
     Washers must stay on for CYCLE_START_COUNT seconds to register as on,
     and must stay off for CYCLE_TIMEOUT_COUNT seconds to register as off.
@@ -115,8 +119,10 @@ washer_thread_one = Thread(target = monitor_washer, args=(WASHER1_PIN, ) )
 washer_thread_two = Thread(target = monitor_washer, args=(WASHER2_PIN, ) )
 # intialize mqtt client and mutex
 client = mqtt.Client()
-client.username_pw_set(USERNAME, password=PASSWORD)
-client.tls_set(CERTS)
+if args.username and args.password:
+    client.username_pw_set(USERNAME, password=PASSWORD)
+if args.certs:
+    client.tls_set(CERTS)
 client.on_connect = on_connect
 client.on_message = on_message
 client.connect(BROKER, PORT, 60)
