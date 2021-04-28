@@ -6,6 +6,7 @@ Usage: <python-version> sensor.py [OPTIONS]
   -c, --certs        The certification file to use with the MQTT broker. (optional)
   -u, --username     The username to use with the broker. (optional)
   -p, --password     The password to use with the broker. (optional)
+  -h, --help         Display this help message. (optional)
 
 Example:
 
