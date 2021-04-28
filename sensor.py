@@ -1,28 +1,24 @@
-# Usage: python sensor.py LOCATION
-#        LOCATION = Dorm or apartment where Pi is located. Capitalize the first letter.
-# program for monitoring 2 washers and 2 dryers
-# monitors cs326/washroom/LOCATION/request for requests
-# uses cs326/washroom/LOCATION for output
+# Usage: python sensor.py -l -b -c -u -p
+#    -l: Location (Dorm/apartment name)
+#    -b: Broker address
+#    -c: Broker cerificates (optional)
+#    -u: Broker username (optional)
+#    -p: Broker password (optional)
+# This programs monitors 2 washers and 2 dryers.
+# Uses cs326/washroom/LOCATION/request for requests
+# Uses cs326/washroom/LOCATION for output
 # Josh Ridder for cs326
 # 4-23-21
 
 import RPi.GPIO as GPIO
 import paho.mqtt.client as mqtt
 import sys
+import argparse
 from time import sleep
 from threading import Thread, Lock
 
-try:
-    LOCATION = str(sys.argv[1])
-except:
-    sys.exit("Usage: python3 sensor.py LOCATION\n\tLOCATION = Dorm or apartment where Pi is located. Capitalize the first letter.")
-
-BROKER = 'iot.cs.calvin.edu'
 PORT = 8883
 QOS = 2
-USERNAME = 'cs326'
-PASSWORD = 'piot'
-CERTS = '/etc/ssl/certs/ca-certificates.crt'
 WASHER1_PIN = 12
 WASHER2_PIN = 16
 DRYER1_PIN = 23
@@ -30,6 +26,27 @@ DRYER2_PIN = 25
 CYCLE_START_COUNT = 3
 CYCLE_TIMEOUT_COUNT = 120
 INTERVAL_SLEEP_TIMER = 1
+
+# read arguments
+parser = argparse.ArgumentParser()
+parser.add_argument("-l", "--location", help="Dorm/Apartment name")
+parser.add_argument("-b", "--broker", help="MQTT Broker")
+parser.add_argument("-c", "--certs", help="Broker Certificates (optional)")
+parser.add_argument("-u", "--username", help="Broker Username (optional)")
+parser.add_argument("-p", "--password", help="Broker Password (optional)")
+
+args = parser.parse_args()
+
+LOCATION = args.location
+BROKER = args.broker
+if args.certs:
+    CERTS = args.certs
+if args.username:
+    USERNAME = args.username
+if args.password:
+    PASSWORD = args.password
+    
+# sys.exit("Usage: python3 sensor.py LOCATION\n\tLOCATION = Dorm or apartment where Pi is located. Capitalize the first letter.")
 
 def on_connect(userdata, rc, *extra_params):
     ''' Provides feedback upon connecting to MQTT. '''
