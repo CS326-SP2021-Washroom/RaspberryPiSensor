@@ -43,14 +43,6 @@ if args.location and args.broker:
 else:
     print(HELP_STRING)
     sys.exit()
-if args.certs:
-    CERTS = args.certs
-if args.username:
-    USERNAME = args.username
-if args.password:
-    PASSWORD = args.password
-
-# sys.exit("Usage: python3 sensor.py LOCATION\n\tLOCATION = Dorm or apartment where Pi is located. Capitalize the first letter.")
 
 def on_connect(userdata, rc, *extra_params):
     ''' Provides feedback upon connecting to MQTT. '''
@@ -117,12 +109,13 @@ def monitor_washer(washer_pin_number):
 # create a thread for each machine
 washer_thread_one = Thread(target = monitor_washer, args=(WASHER1_PIN, ) )
 washer_thread_two = Thread(target = monitor_washer, args=(WASHER2_PIN, ) )
+
 # intialize mqtt client and mutex
 client = mqtt.Client()
 if args.username and args.password:
-    client.username_pw_set(USERNAME, password=PASSWORD)
+    client.username_pw_set(args.username, password=args.password)
 if args.certs:
-    client.tls_set(CERTS)
+    client.tls_set(args.certs)
 client.on_connect = on_connect
 client.on_message = on_message
 client.connect(BROKER, PORT, 60)
