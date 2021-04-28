@@ -5,8 +5,8 @@
 #    -u: Broker username (optional)
 #    -p: Broker password (optional)
 # This programs monitors 2 washers and 2 dryers.
-# Uses cs326/washroom/LOCATION/request for requests
-# Uses cs326/washroom/LOCATION for output
+# Uses cs326/washroom/Location/request for requests
+# Uses cs326/washroom/Location for output
 # Josh Ridder for cs326
 # 4-23-21
 
@@ -37,10 +37,7 @@ parser.add_argument("-u", "--username", help="Broker Username (optional)")
 parser.add_argument("-p", "--password", help="Broker Password (optional)")
 args = parser.parse_args()
 
-if args.location and args.broker:
-    LOCATION = args.location
-    BROKER = args.broker
-else:
+if not args.location or not args.broker:
     print(HELP_STRING)
     sys.exit()
 
@@ -56,7 +53,7 @@ def on_message(client, userdata, message):
     dryer1_status = GPIO.input(DRYER1_PIN) == False
     dryer2_status = GPIO.input(DRYER2_PIN) == False
     print("washer1 is ", washer1_status, " washer2 is ", washer2_status, " dryer1 is ", dryer1_status, " dryer2 is ", dryer2_status)
-    client.publish("cs326/washroom/" + LOCATION, payload=str(int(washer1_status)) + str(int(washer2_status)) + str(int(dryer1_status)) + str(int(dryer2_status)) )
+    client.publish("cs326/washroom/" + args.location, payload=str(int(washer1_status)) + str(int(washer2_status)) + str(int(dryer1_status)) + str(int(dryer2_status)) )
 
 # initialize pins and washer status
 GPIO.setmode(GPIO.BCM)
@@ -118,8 +115,8 @@ if args.certs:
     client.tls_set(args.certs)
 client.on_connect = on_connect
 client.on_message = on_message
-client.connect(BROKER, PORT, 60)
-client.subscribe("cs326/washroom/" + LOCATION + "/request", qos=QOS)
+client.connect(args.broker, PORT, 60)
+client.subscribe("cs326/washroom/" + args.location + "/request", qos=QOS)
 client_mutex = Lock()
 
 try:
