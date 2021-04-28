@@ -35,9 +35,10 @@ parser.add_argument("-b", "--broker", help="MQTT Broker")
 parser.add_argument("-c", "--certs", help="Broker Certificates (optional)")
 parser.add_argument("-u", "--username", help="Broker Username (optional)")
 parser.add_argument("-p", "--password", help="Broker Password (optional)")
+parser.add_argument("-h", "--help", help="Show help text")
 args = parser.parse_args()
 
-if not args.location or not args.broker:
+if not args.location or not args.broker or args.help:
     print(HELP_STRING)
     sys.exit()
 
